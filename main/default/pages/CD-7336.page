@@ -1,0 +1,32 @@
+<apex:page>
+    <!-- Direct hardcoded Lightning URL -->
+    <a href="https://acme.lightning.force.com/lightning/o/Account/home">Accounts</a>
+
+    <!-- Classic my.salesforce.com hardcode -->
+    <a href="https://acme.my.salesforce.com/001">View Account</a>
+
+    <!-- Visualforce domain hardcode -->
+    <apex:outputLink value="https://acme.visualforce.com/apex/MyPage">
+        Open VF Page
+    </apex:outputLink>
+
+    <!-- Community domain hardcode -->
+    <a href="https://acme.force.com/s">Community Home</a>
+
+    <!-- Script redirect -->
+    <script>
+        window.location = "https://acme--dev.my.salesforce.com/lightning/page/home";
+    </script>
+
+    <!-- Meta redirect -->
+    <meta http-equiv="refresh" content="0; url=https://acme.my.salesforce.com/001"/>
+
+    <!-- Hardcoded sandbox domain -->
+    <a href="https://acme--full.sandbox.my.salesforce.com">Sandbox Link</a>
+
+    <!-- JS concatenation still hardcoded -->
+    <script>
+        const host = "https://" + "acme.lightning.force.com";
+        const path = host + "/lightning/r/Opportunity/home";
+    </script>
+</apex:page>

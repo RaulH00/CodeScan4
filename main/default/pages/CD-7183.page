@@ -1,0 +1,7 @@
+<apex:page>
+		
+		<apex:image url="/resource/TestImage.png" />   	//Bad: Path is hard-coded.
+	
+		<apex:image url="{!$Resource.TestImage}" />		//Good: Static Resource referencing is used.
+	//comment	
+	</apex:page>

@@ -1,0 +1,123 @@
+<apex:page showHeader="false" sidebar="false">
+    <!-- =========================================================
+         Rule: AvoidHardCodedResourceReferences
+         Legend:
+           ❌ Violation: Should Throw
+           ✅ No Violation: Should NOT Throw
+         Notes:
+           - Use $Resource or URLFOR($Resource.X, 'path/in/resource') instead of literal /resource URLs.
+           - For external URLs (CDNs, APIs, intranet), use Custom Labels or Custom Settings/Metadata.
+       ========================================================= -->
+    <!-- 1) Images -->
+    <!-- ❌ Hard-coded Static Resource path -->
+    <apex:image url="/resource/TestImage.png" />
+    <!-- ❌ Hard-coded versioned path (fragile across deploys) -->
+    <img src="/resource/1699999999999/MyStatic/logo.png" alt="logo" />
+    <!-- ✅ Using $Resource (resolves to correct URL/version automatically) -->
+    <apex:image url="{!$Resource.TestImage}" />
+    <!-- ✅ Using URLFOR with a file inside a zipped static resource -->
+    <img src="{!URLFOR($Resource.MyStatic, 'img/logo.png')}" alt="logo-zip" />
+    <hr/>
+    <!-- 2) JavaScript libraries -->
+    <!-- ❌ Hard-coded script URL under /resource -->
+    <apex:includeScript value="/resource/moment.min.js" />
+    <!-- ✅ Using $Resource -->
+    <apex:includeScript value="{!$Resource.Moment}" />
+    <!-- ✅ Using URLFOR with file inside a resource package -->
+    <script src="{!URLFOR($Resource.AppLibs, 'vendor/moment.min.js')}"></script>
+    <hr/>
+    <!-- 3) Stylesheets -->
+    <!-- ❌ Hard-coded stylesheet path -->
+    <apex:stylesheet value="/resource/css/site.css" />
+    <!-- ✅ Using URLFOR with resource name and relative path -->
+    <link rel="stylesheet" href="{!URLFOR($Resource.SiteAssets, 'css/site.css')}" />
+    <!-- ✅ Using $Resource directly when the resource is a single file -->
+    <link rel="stylesheet" href="{!$Resource.SiteCss}" />
+    <hr/>
+    <!-- 4) Icons / favicon -->
+    <!-- ❌ Hard-coded favicon path -->
+    <link rel="icon" href="/resource/Fav/favicon.ico"/>
+    <!-- ✅ Using URLFOR -->
+    <link rel="icon" href="{!URLFOR($Resource.Fav, 'favicon.ico')}"/>
+    <hr/>
+    <!-- 5) Output links to external systems -->
+    <!-- ❌ Hard-coded external CDN/app link -->
+    <apex:outputLink value="https://cdn.example.com/app">Open App (Hard-coded)</apex:outputLink>
+    <!-- ✅ Config-driven via Custom Label -->
+    <apex:outputLink value="{!$Label.External_App_Url}">Open App (Label)</apex:outputLink>
+    <hr/>
+    <!-- 6) IFrames -->
+    <!-- ❌ Hard-coded intranet dashboard -->
+    <apex:iframe src="https://intranet.local/dashboard" width="600" height="300"/>
+    <!-- ✅ Config-driven via Custom Label -->
+    <apex:iframe src="{!$Label.Intranet_Dashboard_Url}" width="600" height="300"/>
+    <hr/>
+    <!-- 7) Inline JavaScript endpoints -->
+    <!-- ❌ Hard-coded API base (assigns literal string) -->
+    <script>
+        // ❌ Violation: Should Throw
+        var API_BASE = 'https://api.example.com/v1';
+        // Example usage:
+        function fetchUsersBad() {
+            return fetch(API_BASE + '/users')
+                .then(function(r){ return r.json(); });
+        }
+    </script>
+    <!-- ✅ Config-driven API base using Custom Label (escaped for JS safety) -->
+    <script>
+        // ✅ No Violation: Should NOT Throw
+        var API_BASE_CFG = '{!JSENCODE($Label.Api_Endpoint)}';
+        function fetchUsersGood() {
+            return fetch(API_BASE_CFG + '/users')
+                .then(function(r){ return r.json(); });
+        }
+    </script>
+    <hr/>
+    <!-- 8) Data attributes with URLs -->
+    <!-- ❌ Hard-coded URL embedded in data-* -->
+    <div id="hardDataUrl" data-endpoint="https://ml.example.ai/predict"></div>
+    <!-- ✅ Config-driven (Custom Label) -->
+    <div id="goodDataUrl" data-endpoint="{!$Label.ML_Predict_Endpoint}"></div>
+    <hr/>
+    <!-- 9) Mixed examples: image + script + stylesheet all at once -->
+    <!-- ❌ Hard-coded everywhere -->
+    <img src="/resource/StaticPkg/img/hero.png" alt="hero"/>
+    <script src="/resource/StaticPkg/js/app.js"></script>
+    <link rel="stylesheet" href="/resource/StaticPkg/css/app.css"/>
+    <!-- ✅ All using URLFOR on the same static resource -->
+    <img src="{!URLFOR($Resource.StaticPkg, 'img/hero.png')}" alt="hero-ok"/>
+    <script src="{!URLFOR($Resource.StaticPkg, 'js/app.js')}"></script>
+    <link rel="stylesheet" href="{!URLFOR($Resource.StaticPkg, 'css/app.css')}"/>
+    <hr/>
+    <!-- 10) Links to images using $Resource vs hard-coded -->
+    <!-- ❌ Hard-coded direct resource path -->
+    <a href="/resource/Logos/company.svg" target="_blank">Company Logo (Hard-coded)</a>
+    <!-- ✅ Config-driven using $Resource -->
+    <a href="{!URLFOR($Resource.Logos, 'company.svg')}" target="_blank">Company Logo (OK)</a>
+    <hr/>
+    <!-- 11) Demonstrate comments for scanning context -->
+    <!--
+        ❌ The following references should be flagged:
+           - /resource/TestImage.png
+           - /resource/1699999999999/MyStatic/logo.png
+           - /resource/moment.min.js
+           - /resource/css/site.css
+           - /resource/Fav/favicon.ico
+           - https://cdn.example.com/app
+           - https://intranet.local/dashboard
+           - 'https://api.example.com/v1'
+           - https://ml.example.ai/predict
+           - /resource/StaticPkg/img/hero.png, /resource/StaticPkg/js/app.js, /resource/StaticPkg/css/app.css
+        ✅ These should NOT be flagged:
+           - {$Resource.TestImage}
+           - URLFOR($Resource.MyStatic, 'img/logo.png')
+           - <apex:includeScript value="{!$Resource.Moment}">
+           - <link rel="stylesheet" href="{!URLFOR($Resource.SiteAssets, 'css/site.css')}">
+           - {$Resource.SiteCss}
+           - { $Label.External_App_Url }
+           - { $Label.Intranet_Dashboard_Url }
+           - JSENCODE($Label.Api_Endpoint)
+           - { $Label.ML_Predict_Endpoint }
+           - URLFOR($Resource.StaticPkg, 'img/hero.png'/'js/app.js'/'css/app.css')
+    -->
+</apex:page>
